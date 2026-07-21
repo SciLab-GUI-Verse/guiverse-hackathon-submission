@@ -1,7 +1,5 @@
-// =========================================================================
-// charts.sci
+
 // Themed, animated chart helpers for the Scilab Interactive Dashboard.
-// =========================================================================
 
 function theme_pause(us)
     // Safe wrapper: some Scilab installs no longer ship 'xpause'
@@ -245,9 +243,7 @@ function chart_animate_marker(a, x, y, col, title_str, xlbl, ylbl, nframes, paus
     end
 endfunction
 
-// ===============================================================
 // Raise any UI controls so plots never hide them
-// ===============================================================
 
 function theme_raise_ui(handles)
 
@@ -271,10 +267,7 @@ function theme_raise_ui(handles)
 
 endfunction
 
-
-// ===============================================================
 // Navigation button
-// ===============================================================
 
 function h = theme_nav_button(parent, txt, pos, cb)
 
@@ -286,10 +279,7 @@ function h = theme_nav_button(parent, txt, pos, cb)
 
 endfunction
 
-
-// ===============================================================
 // Finalize figure
-// ===============================================================
 
 function theme_finalize_figure(fig)
 

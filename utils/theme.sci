@@ -1,13 +1,6 @@
-// =========================================================================
-// theme.sci
+
 // Neon Dark Theme utilities for the Scilab Interactive Dashboard
-// =========================================================================
-
-
-// =========================
 // Color Palette
-// =========================
-
 function c = theme_bg()
     // Main window background
     c = [0.08 0.08 0.10];

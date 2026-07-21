@@ -1,10 +1,8 @@
-// =========================================================================
-// module_utility.sce
+
 // MODULE 5: Utility & Productivity Tools
 //   Tool A: Unit Converter (length / weight / temperature)
 //   Tool B: Matrix Equation Solver  (A x = b)
 //   Tool C: Stopwatch Timer
-// =========================================================================
 
 global UTIL_FIG UTIL_GROUPS
 global UTIL_CAT UTIL_IN UTIL_FROM UTIL_TO UTIL_RES

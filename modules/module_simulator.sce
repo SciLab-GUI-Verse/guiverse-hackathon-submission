@@ -1,10 +1,8 @@
-// =========================================================================
-// module_simulator.sce
+
 // MODULE 4: Science & Engineering Simulator
 // Spring-Mass-Damper system: m*x'' + c*x' + k*x = 0
 // Users drag mass/stiffness/damping/initial-displacement sliders and
 // watch the displacement response solved numerically (ode()) in real time.
-// =========================================================================
 
 global SIM_FIG SIM_M SIM_K SIM_C SIM_X0 SIM_AXES SIM_INFO
 global SIM_ODE_M SIM_ODE_K SIM_ODE_C

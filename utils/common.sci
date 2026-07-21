@@ -1,7 +1,5 @@
-// =========================================================================
-// common.sci
+
 // Small shared helper functions used by more than one module.
-// =========================================================================
 
 function v = safe_evstr(s, default_val)
     // Safely evaluate a string as a numeric expression.

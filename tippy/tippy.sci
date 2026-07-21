@@ -1,9 +1,7 @@
-// =========================================================================
-// tippy.sci
+
 // TIPPY - the friendly on-screen guide that appears on every page of the
 // dashboard. Each figure stores its own Tippy handles in fig.userdata so
 // tips always update the correct window (no stale global handles).
-// =========================================================================
 
 function tippy_init(parent_fig)
     face = uicontrol(parent_fig, 'style', 'text', ...
