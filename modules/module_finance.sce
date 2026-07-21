@@ -1,9 +1,7 @@
-// =========================================================================
-// module_finance.sce
+
 // MODULE 3: Finance & Business Calculators
 //   Tool A: Loan EMI Calculator (with amortization balance chart)
 //   Tool B: Investment Growth Comparator (SIP-style, Scheme A vs Scheme B)
-// =========================================================================
 
 global FIN_FIG FIN_AXES FIN_MODE
 global FIN_P FIN_R FIN_N FIN_EMIRES

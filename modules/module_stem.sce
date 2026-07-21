@@ -1,11 +1,9 @@
-// =========================================================================
-// module_stem.sce
+
 // MODULE 1: Interactive STEM Education
 // Three switchable interactive demos, all sharing one plotting axes:
 //   1. Projectile Motion   (mechanics)
 //   2. Simple Pendulum     (mechanics / oscillation)
 //   3. RC Circuit Charging (electronics)
-// =========================================================================
 
 global STEM_FIG STEM_AXES
 global STEM_CONTROLS         // list of widget-groups, one per demo

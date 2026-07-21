@@ -1,11 +1,9 @@
-// =========================================================================
-// module_dataviz.sce
+
 // MODULE 2: Data Visualization Dashboard
 // Load a CSV file, choose X/Y columns, pick a plot type, and view live
 // summary statistics (mean, median, std-dev, min, max, correlation).
 // A dedicated "Visualize / Animate" button plays an animated version of
 // whichever plot type is currently selected.
-// =========================================================================
 
 global DV_FIG DV_AXES DV_STATUS DV_COLX DV_COLY DV_PTYPE DV_STATS DV_DATA DV_HEADERS
 

@@ -1,6 +1,4 @@
-// =========================================================================
-// main_dashboard.sce
-// ======================  SCILAB INTERACTIVE DASHBOARD  =================
+
 // Entry point. Run this file from Scilab (exec or "Open and run") to
 // launch the Home Screen, from which every category module can be opened.
 //
@@ -14,7 +12,7 @@
 //   modules/module_finance.sce     <- 3. Finance & Business Calculators
 //   modules/module_simulator.sce   <- 4. Science & Engineering Simulator
 //   modules/module_utility.sce     <- 5. Utility & Productivity Tools
-// =========================================================================
+
 
 BASE_PATH = get_absolute_file_path('main_dashboard.sce');
 
