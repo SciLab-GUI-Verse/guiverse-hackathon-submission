@@ -1,4 +1,3 @@
-
 // MODULE 3: Finance & Business Calculators
 //   Tool A: Loan EMI Calculator (with amortization balance chart)
 //   Tool B: Investment Growth Comparator (SIP-style, Scheme A vs Scheme B)
@@ -10,16 +9,25 @@ global FIN_EMI_GROUP FIN_INV_GROUP
 
 function finance_open()
     global FIN_FIG FIN_AXES FIN_MODE FIN_P FIN_R FIN_N FIN_EMIRES FIN_INV FIN_YRS FIN_RA FIN_RB FIN_INVRES FIN_EMI_GROUP FIN_INV_GROUP
+
+    // --- Defensive cleanup --------------------------------------------
+    try
+        if ~isempty(FIN_FIG) & is_handle_valid(FIN_FIG) then
+            delete(FIN_FIG);
+        end
+    catch
+        // FIN_FIG was invalid or unassigned
+    end
+    
+    FIN_FIG = []; FIN_AXES = []; FIN_MODE = [];
+    FIN_P = []; FIN_R = []; FIN_N = []; FIN_EMIRES = [];
+    FIN_INV = []; FIN_YRS = []; FIN_RA = []; FIN_RB = []; FIN_INVRES = [];
+    FIN_EMI_GROUP = []; FIN_INV_GROUP = [];
+
     f = theme_new_figure('Finance & Business Calculator', [120 40 1020 700]);
     FIN_FIG = f;
 
     theme_label(f, 'FINANCE & BUSINESS CALCULATORS', [250 640 550 35], theme_neon_green());
-
-    a = newaxes();
-    a.axes_bounds = [0.30 0.18 0.66 0.58];
-    a.parent = f;
-    a.background = 1;
-    FIN_AXES = a;
 
     theme_label(f, 'Select Tool:', [30 590 150 20]);
     mode = uicontrol(f, 'style', 'popupmenu', ...
@@ -34,7 +42,9 @@ function finance_open()
     n_lbl = theme_label(f, 'Tenure (years):', [30 430 160 20]);
     n_edit = theme_edit(f, '5', [200 430 150 25]);
     calc_btn = theme_button(f, 'Calculate EMI', [30 380 220 35], 'finance_calc_emi()', theme_neon_cyan());
-    emi_result = theme_label(f, 'EMI: --   Total Payment: --   Total Interest: --', [30 300 300 70], theme_neon_purple());
+    
+    // Standard HTML formatting used for multi-line UI text
+    emi_result = theme_label(f, '<html>EMI: --<br>Total Payment: --<br>Total Interest: --</html>', [30 300 300 70], theme_neon_purple());
 
     // ---- Investment Comparator panel ----
     inv_lbl = theme_label(f, 'Monthly Investment:', [30 510 160 20]);
@@ -46,7 +56,7 @@ function finance_open()
     rb_lbl = theme_label(f, 'Scheme B Annual Return (%):', [30 390 230 20]);
     rb_edit = theme_edit(f, '12', [260 390 100 25]);
     inv_btn = theme_button(f, 'Compare Growth', [30 340 220 35], 'finance_calc_invest()', theme_neon_pink());
-    inv_result = theme_label(f, 'Scheme A Value: --\nScheme B Value: --', [30 260 300 70], theme_neon_purple());
+    inv_result = theme_label(f, '<html>Scheme A Value: --<br>Scheme B Value: --</html>', [30 260 300 70], theme_neon_purple());
 
     FIN_MODE = mode;
     FIN_P = p_edit; FIN_R = r_edit; FIN_N = n_edit; FIN_EMIRES = emi_result;
@@ -59,6 +69,14 @@ function finance_open()
         FIN_INV_GROUP(i).visible = 'off';
     end
 
+    // ---- Axes creation ----
+    a = newaxes();
+    a.axes_bounds = [0.46 0.15 0.50 0.62];
+    a.parent = f;
+    a.background = 1;
+    FIN_AXES = a;
+
+    // ---- Navigation & Tippy buttons ----
     theme_nav_button(f, 'Back to Home', [30 20 150 35], 'launch_home()');
     tippy_init(f);
     tippy_help_button(f, [960 640 30 30], ...
@@ -70,6 +88,9 @@ endfunction
 
 function finance_switch()
     global FIN_MODE FIN_EMI_GROUP FIN_INV_GROUP FIN_FIG
+    if isempty(FIN_FIG) | ~is_handle_valid(FIN_FIG) | isempty(FIN_MODE) | ~is_handle_valid(FIN_MODE) then
+        return;
+    end
     m = FIN_MODE.value;
     for i = 1:length(FIN_EMI_GROUP)
         FIN_EMI_GROUP(i).visible = fin_bool2s(m == 1);
@@ -95,6 +116,9 @@ endfunction
 
 function finance_calc_emi()
     global FIN_P FIN_R FIN_N FIN_EMIRES FIN_AXES FIN_FIG
+    if isempty(FIN_FIG) | ~is_handle_valid(FIN_FIG) | isempty(FIN_P) | ~is_handle_valid(FIN_P) then
+        return;
+    end
 
     P = safe_evstr(FIN_P.string, 100000);
     annual_r = safe_evstr(FIN_R.string, 8.5);
@@ -122,14 +146,21 @@ function finance_calc_emi()
     months = 1:n;
     chart_plot_line(FIN_AXES, months, balances, 'green', 'Outstanding Loan Balance Over Time', 'Month', 'Balance');
 
-    FIN_EMIRES.string = [msprintf('EMI: %.2f', emi); ..
-                      msprintf('Total Payment: %.2f', total); ..
-                      msprintf('Total Interest: %.2f', interest)];
+    // Clean double-quoted HTML string concatenation
+    line1 = "EMI: <font color=""#FFFFFF"">" + msprintf("%.2f", emi) + "</font>";
+    line2 = "Total Payment: <font color=""#FFFFFF"">" + msprintf("%.2f", total) + "</font>";
+    line3 = "Total Interest: <font color=""#FFFFFF"">" + msprintf("%.2f", interest) + "</font>";
+    
+    FIN_EMIRES.string = "<html><font color=""#00FFFF""><b>" + line1 + "<br>" + line2 + "<br>" + line3 + "</b></font></html>";
+        
     theme_finalize_figure(FIN_FIG);
 endfunction
 
 function finance_calc_invest()
     global FIN_INV FIN_YRS FIN_RA FIN_RB FIN_INVRES FIN_AXES FIN_FIG
+    if isempty(FIN_FIG) | ~is_handle_valid(FIN_FIG) | isempty(FIN_INV) | ~is_handle_valid(FIN_INV) then
+        return;
+    end
 
     monthly = safe_evstr(FIN_INV.string, 5000);
     years = safe_evstr(FIN_YRS.string, 10);
@@ -155,9 +186,13 @@ function finance_calc_invest()
     total_invested = monthly * n;
     finalA = valA(n);
     finalB = valB(n);
-    FIN_INVRES.string = [msprintf('Total Invested: %.2f', total_invested); ..
-                      msprintf('Scheme A Final: %.2f', finalA); ..
-                      msprintf('Scheme B Final: %.2f', finalB)];
+
+    // Clean double-quoted HTML string concatenation
+    line1 = "Total Invested: <font color=""#00FFCC"">" + msprintf("%.2f", total_invested) + "</font>";
+    line2 = "Scheme A Final: <font color=""#00FFFF"">" + msprintf("%.2f", finalA) + "</font>";
+    line3 = "Scheme B Final: <font color=""#FF66FF"">" + msprintf("%.2f", finalB) + "</font>";
+
+    FIN_INVRES.string = "<html><font color=""#FFFFFF""><b>" + line1 + "<br>" + line2 + "<br>" + line3 + "</b></font></html>";
 
     theme_finalize_figure(FIN_FIG);
 endfunction
