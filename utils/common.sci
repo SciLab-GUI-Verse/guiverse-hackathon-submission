@@ -30,3 +30,31 @@ function s = fmt(val, decimals)
     fstr = '%.' + string(decimals) + 'f';
     s = msprintf(fstr, val);
 endfunction
+
+function r = safe_correl(x, y)
+    // Computes the Pearson correlation coefficient between x and y.
+    // Returns 0 if standard deviation of either is 0 or if lengths mismatch.
+    r = 0;
+    n = length(x);
+    if n < 2 | length(y) <> n then
+        return;
+    end
+    mx = mean(x); my = mean(y);
+    dx = x - mx; dy = y - my;
+    sx = sum(dx.^2); sy = sum(dy.^2);
+    if sx == 0 | sy == 0 then
+        return;
+    end
+    r = sum(dx .* dy) / sqrt(sx * sy);
+endfunction
+
+function cla()
+    // Clears the current axes safely in Scilab
+    try
+        a = gca();
+        if a <> [] & isfield(a, "children") then
+            delete(a.children);
+        end
+    catch
+    end
+endfunction

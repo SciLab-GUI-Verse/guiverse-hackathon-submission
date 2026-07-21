@@ -20,7 +20,23 @@ BASE_PATH = get_absolute_file_path('main_dashboard.sce');
 
 exec(BASE_PATH + 'utils/theme.sci', -1);
 exec(BASE_PATH + 'utils/common.sci', -1);
+exec(BASE_PATH + 'utils/charts.sci', -1);
 exec(BASE_PATH + 'tippy/tippy.sci', -1);
+
+// Load ALL modules here, at the TOP LEVEL of this script (not inside any
+// function). This is important: if exec() is called from inside a
+// function body, the functions defined by the executed file only stay in
+// scope for the lifetime of that function call and disappear afterwards.
+// Loading them here instead means their functions (dataviz_open,
+// dataviz_replot, dataviz_animate, etc.) are registered globally, once,
+// and remain callable for the whole session - including from UI
+// callback strings evaluated at the top level (e.g. popupmenu/button
+// callbacks like 'dataviz_replot()').
+exec(BASE_PATH + 'modules/module_stem.sce', -1);
+exec(BASE_PATH + 'modules/module_dataviz.sce', -1);
+exec(BASE_PATH + 'modules/module_finance.sce', -1);
+exec(BASE_PATH + 'modules/module_simulator.sce', -1);
+exec(BASE_PATH + 'modules/module_utility.sce', -1);
 
 global DASH_BASE_PATH
 DASH_BASE_PATH = BASE_PATH;
@@ -54,35 +70,31 @@ function launch_home()
     tippy_init(f);
     tippy_help_button(f, [940 610 30 30], ...
         'Welcome to the dashboard! Click any numbered button to open that module. Every module has its own Tippy tips too - just look for the (?) button.');
+    theme_finalize_figure(f);
 endfunction
 
 function launch_stem()
-    global DASH_BASE_PATH
-    exec(DASH_BASE_PATH + 'modules/module_stem.sce', -1);
+    close(winsid());
     stem_open();
 endfunction
 
 function launch_dataviz()
-    global DASH_BASE_PATH
-    exec(DASH_BASE_PATH + 'modules/module_dataviz.sce', -1);
+    close(winsid());
     dataviz_open();
 endfunction
 
 function launch_finance()
-    global DASH_BASE_PATH
-    exec(DASH_BASE_PATH + 'modules/module_finance.sce', -1);
+    close(winsid());
     finance_open();
 endfunction
 
 function launch_simulator()
-    global DASH_BASE_PATH
-    exec(DASH_BASE_PATH + 'modules/module_simulator.sce', -1);
+    close(winsid());
     simulator_open();
 endfunction
 
 function launch_utility()
-    global DASH_BASE_PATH
-    exec(DASH_BASE_PATH + 'modules/module_utility.sce', -1);
+    close(winsid());
     utility_open();
 endfunction
 
