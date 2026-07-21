@@ -124,4 +124,4 @@ button calls `tippy_on_help()`, which reads `gcbo().userdata` and makes Tippy "s
 - [x] Problem statement (`PROBLEM_STATEMENT.md`)
 - [ ] GUI screenshots — add to `screenshots/` before submission
 - [ ] Short demo video (<2 min) — record a walkthrough of all 5 modules + Tippy
-- [ ] Sample outputs — the `sample_data/sample.csv` results, EMI/investment charts, etc.
+- [x] Sample outputs — the `sample_data/sample.csv` results, EMI/investment charts, etc.
