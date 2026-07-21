@@ -6,24 +6,22 @@
 //   Tool C: Stopwatch Timer
 // =========================================================================
 
-global UTIL_GROUPS
+global UTIL_FIG UTIL_GROUPS
 global UTIL_CAT UTIL_IN UTIL_FROM UTIL_TO UTIL_RES
 global UTIL_MAT_A UTIL_MAT_B UTIL_MAT_RES
 global UTIL_SW_LABEL UTIL_SW_RUNNING
 
 function utility_open()
+    global UTIL_FIG UTIL_GROUPS
     f = theme_new_figure('Utility & Productivity Tools', [120 40 1020 700]);
+    UTIL_FIG = f;
+
     theme_label(f, 'UTILITY & PRODUCTIVITY TOOLS', [270 640 550 35], theme_neon_cyan());
 
-    uicontrol(f, 'style', 'listbox', ...
-        'string', ['Unit Converter'; 'Matrix Equation Solver'; 'Stopwatch Timer'], ...
-        'position', [30 520 220 90], ...
-        'backgroundcolor', [0.12 0.12 0.18], ...
-        'foregroundcolor', theme_neon_green(), ...
-        'fontsize', 3, ...
-        'callback', 'util_switch()');
-
     UTIL_GROUPS = list();
+
+    lb = theme_list(f, ['Unit Converter'; 'Matrix Equation Solver'; 'Stopwatch Timer'], [30 520 220 90]);
+    lb.callback = 'util_switch()';
 
     util_build_converter(f);
     util_build_matrix(f);
@@ -31,15 +29,17 @@ function utility_open()
 
     util_show_only(1);
 
-    theme_button(f, 'Back to Home', [30 20 150 35], 'launch_home()', theme_neon_pink());
+    theme_nav_button(f, 'Back to Home', [30 20 150 35], 'launch_home()');
     tippy_init(f);
     tippy_help_button(f, [960 640 30 30], ...
         'Pick a tool from the list: convert units, solve A x = b matrix equations, or use the stopwatch for timing tasks.');
+    theme_finalize_figure(f);
 endfunction
 
 function util_switch()
     lb = gcbo();
     util_show_only(lb.value);
+    theme_finalize_figure(UTIL_FIG);
 endfunction
 
 function util_show_only(idx)
@@ -82,7 +82,7 @@ function util_build_converter(f)
 endfunction
 
 function util_conv_cat_change()
-    global UTIL_CAT UTIL_FROM UTIL_TO
+    global UTIL_CAT UTIL_FROM UTIL_TO UTIL_FIG
     catv = UTIL_CAT.value;
     if catv == 1 then
         u = ['m'; 'km'; 'cm'; 'ft'; 'mile'];
@@ -94,10 +94,11 @@ function util_conv_cat_change()
     UTIL_FROM.string = u; UTIL_FROM.value = 1;
     UTIL_TO.string = u; UTIL_TO.value = 1;
     util_conv_calc();
+    theme_finalize_figure(UTIL_FIG);
 endfunction
 
 function util_conv_calc()
-    global UTIL_CAT UTIL_IN UTIL_FROM UTIL_TO UTIL_RES
+    global UTIL_CAT UTIL_IN UTIL_FROM UTIL_TO UTIL_RES UTIL_FIG
 
     cval = safe_evstr(UTIL_IN.string, 1);
     catv = UTIL_CAT.value;
@@ -116,7 +117,6 @@ function util_conv_calc()
         out = base / factors(ti);
         UTIL_RES.string = msprintf('Result: %.4f %s', out, units(ti));
     else
-        // Temperature: normalize to Celsius, then to target
         if fi == 1 then
             c = cval;
         elseif fi == 2 then
@@ -134,6 +134,7 @@ function util_conv_calc()
         units = ['Celsius', 'Fahrenheit', 'Kelvin'];
         UTIL_RES.string = msprintf('Result: %.4f %s', out, units(ti));
     end
+    theme_finalize_figure(UTIL_FIG);
 endfunction
 
 // ------------------------------------------------------------------
@@ -159,22 +160,56 @@ function util_build_matrix(f)
 endfunction
 
 function util_matrix_solve()
-    global UTIL_MAT_A UTIL_MAT_B UTIL_MAT_RES
+    global UTIL_MAT_A UTIL_MAT_B UTIL_MAT_RES UTIL_FIG
 
-    A = evstr(UTIL_MAT_A.string);
-    b = evstr(UTIL_MAT_B.string);
+    A = []; b = [];
+    try
+        A = evstr(UTIL_MAT_A.string);
+    catch
+        UTIL_MAT_RES.string = "Error: Invalid Matrix A syntax.";
+        theme_finalize_figure(UTIL_FIG);
+        return;
+    end
+
+    try
+        b = evstr(UTIL_MAT_B.string);
+    catch
+        UTIL_MAT_RES.string = "Error: Invalid Vector b syntax.";
+        theme_finalize_figure(UTIL_FIG);
+        return;
+    end
+
+    if type(A) <> 1 | type(b) <> 1 then
+        UTIL_MAT_RES.string = "Error: Matrix A and Vector b must be numeric.";
+        theme_finalize_figure(UTIL_FIG);
+        return;
+    end
 
     if size(A, 1) <> size(A, 2) then
-        UTIL_MAT_RES.string = 'Error: A must be a square matrix.';
-        return;
-    end
-    if det(A) == 0 then
-        UTIL_MAT_RES.string = 'Error: Matrix A is singular (no unique solution).';
+        UTIL_MAT_RES.string = "Error: A must be a square matrix.";
+        theme_finalize_figure(UTIL_FIG);
         return;
     end
 
-    x = A \ b;
-    UTIL_MAT_RES.string = 'Solution x = ' + strcat(string(x'), '   ');
+    if size(A, 1) <> size(b, 1) then
+        UTIL_MAT_RES.string = "Error: Dimension mismatch between A and b.";
+        theme_finalize_figure(UTIL_FIG);
+        return;
+    end
+
+    if det(A) == 0 then
+        UTIL_MAT_RES.string = "Error: Matrix A is singular (no unique solution).";
+        theme_finalize_figure(UTIL_FIG);
+        return;
+    end
+
+    try
+        x = A \ b;
+        UTIL_MAT_RES.string = "Solution x = " + strcat(string(x'), "   ");
+    catch
+        UTIL_MAT_RES.string = "Error solving system A x = b.";
+    end
+    theme_finalize_figure(UTIL_FIG);
 endfunction
 
 // ------------------------------------------------------------------
@@ -184,8 +219,7 @@ function util_build_stopwatch(f)
     global UTIL_GROUPS UTIL_SW_LABEL UTIL_SW_RUNNING
 
     lbl = theme_label(f, 'Stopwatch - click Start, then Stop:', [300 580 400 25]);
-    time_lbl = theme_label(f, '0.0 s', [300 500 250 50], theme_neon_green());
-    time_lbl.fontsize = 5;
+    time_lbl = theme_label(f, '0.0 s', [300 500 250 50], theme_neon_green(), 28);
     start_btn = theme_button(f, 'Start', [300 440 100 35], 'util_sw_start()', theme_neon_cyan());
     stop_btn = theme_button(f, 'Stop', [410 440 100 35], 'util_sw_stop()', theme_neon_pink());
     reset_btn = theme_button(f, 'Reset', [520 440 100 35], 'util_sw_reset()', theme_neon_purple());
@@ -200,18 +234,24 @@ function util_build_stopwatch(f)
 endfunction
 
 function util_sw_start()
-    // NOTE: this uses a poll loop (xpause + drawnow) so the "Stop" button
-    // callback can still fire while the stopwatch is running - a common
-    // pattern for simple GUI timers in Scilab (no native timer callback).
-    global UTIL_SW_RUNNING UTIL_SW_LABEL
+    global UTIL_SW_RUNNING UTIL_SW_LABEL UTIL_FIG
 
     tic();
     UTIL_SW_RUNNING = %t;
     while UTIL_SW_RUNNING
         elapsed = toc();
-        UTIL_SW_LABEL.string = msprintf('%.1f s', elapsed);
-        drawnow();
+        try
+            UTIL_SW_LABEL.string = msprintf("%.1f s", elapsed);
+            drawnow();
+        catch
+            UTIL_SW_RUNNING = %f;
+            break;
+        end
         xpause(100000);
+    end
+    try
+        theme_finalize_figure(UTIL_FIG);
+    catch
     end
 endfunction
 
@@ -221,7 +261,8 @@ function util_sw_stop()
 endfunction
 
 function util_sw_reset()
-    global UTIL_SW_RUNNING UTIL_SW_LABEL
+    global UTIL_SW_RUNNING UTIL_SW_LABEL UTIL_FIG
     UTIL_SW_RUNNING = %f;
     UTIL_SW_LABEL.string = '0.0 s';
+    theme_finalize_figure(UTIL_FIG);
 endfunction

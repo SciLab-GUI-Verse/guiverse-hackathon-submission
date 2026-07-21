@@ -1,66 +1,120 @@
 // =========================================================================
 // tippy.sci
 // TIPPY - the friendly on-screen guide that appears on every page of the
-// dashboard. Tippy has a small animated "face" (text glyph) plus a
-// speech-bubble label, and every module drops "?" help buttons that make
-// Tippy speak a context-specific tip when clicked.
+// dashboard. Each figure stores its own Tippy handles in fig.userdata so
+// tips always update the correct window (no stale global handles).
 // =========================================================================
 
-global TIPPY_FACE
-global TIPPY_TXT
-
 function tippy_init(parent_fig)
-    // Draws Tippy (face + speech bubble) in the bottom-left corner of a figure.
-    global TIPPY_FACE TIPPY_TXT
-    TIPPY_FACE = uicontrol(parent_fig, 'style', 'text', ...
+    face = uicontrol(parent_fig, 'style', 'text', ...
         'string', '(^_^)', ...
-        'position', [10 10 60 30], ...
+        'position', [10 55 60 30], ...
         'backgroundcolor', [0.07 0.07 0.10], ...
         'foregroundcolor', [0 1 1], ...
-        'fontsize', 16, 'fontweight', 'bold');
+        'fontsize', 16, 'fontweight', 'bold', ...
+        'tag', 'tippy_face');
 
-    TIPPY_TXT = uicontrol(parent_fig, 'style', 'text', ...
+    txt = uicontrol(parent_fig, 'style', 'text', ...
         'string', 'Hi, I''m Tippy! Click any (?) button for a tip.', ...
-        'position', [75 10 420 30], ...
+        'position', [75 55 520 30], ...
         'backgroundcolor', [0.07 0.07 0.10], ...
         'foregroundcolor', [1 0.10 0.60], ...
-        'fontsize', 13, 'horizontalalignment', 'left');
+        'fontsize', 13, 'horizontalalignment', 'left', ...
+        'tag', 'tippy_txt');
+
+    ud = tippy_get_ud(parent_fig);
+    ud.face = face;
+    ud.txt = txt;
+    parent_fig.userdata = ud;
 endfunction
 
-function tippy_say(msg)
-    // Makes Tippy "speak" a message and animates the face briefly.
-    global TIPPY_FACE TIPPY_TXT
-    if TIPPY_TXT == [] then
+function ud = tippy_get_ud(fig)
+    if fig.userdata == [] then
+        ud = struct('face', [], 'txt', [], 'help_btns', [], 'nav_btns', []);
+    else
+        ud = fig.userdata;
+        if ~isfield(ud, 'face') then
+            ud.face = [];
+        end
+        if ~isfield(ud, 'txt') then
+            ud.txt = [];
+        end
+        if ~isfield(ud, 'help_btns') then
+            ud.help_btns = [];
+        end
+        if ~isfield(ud, 'nav_btns') then
+            ud.nav_btns = [];
+        end
+    end
+endfunction
+
+function tippy_register_nav(fig, btn)
+    ud = tippy_get_ud(fig);
+    ud.nav_btns = [ud.nav_btns, btn];
+    fig.userdata = ud;
+endfunction
+
+function tippy_say(fig, msg)
+    if argn(2) < 1 then
+        fig = gcf();
+    end
+    ud = tippy_get_ud(fig);
+    if ud.txt == [] then
         return;
     end
-    TIPPY_FACE.string = '(^o^)';
-    TIPPY_TXT.string = msg;
+    ud.face.string = '(^o^)';
+    ud.txt.string = msg;
+    fig.userdata = ud;
+    tippy_raise(fig);
 endfunction
 
 function tippy_help_button(parent, pos, msg)
-    // Creates a round "?" button that makes Tippy say `msg` when clicked.
-    // Uses uicontrol userdata (NOT a shared global) so each button keeps
-    // its own independent tip text.
     h = uicontrol(parent, 'style', 'pushbutton', 'string', '?', ...
         'position', pos, 'callback', 'tippy_on_help()', ...
         'backgroundcolor', [0.60 0.20 1], 'foregroundcolor', [1 1 1], ...
-        'fontweight', 'bold', 'fontsize', 14);
+        'fontweight', 'bold', 'fontsize', 14, ...
+        'tag', 'tippy_help');
     h.userdata = msg;
+
+    ud = tippy_get_ud(parent);
+    ud.help_btns = [ud.help_btns, h];
+    parent.userdata = ud;
 endfunction
 
 function tippy_on_help()
-    // Callback bound to every "?" button - reads the message from the
-    // button that was actually clicked (gcbo = "get callback object").
-    h = gcbo();
-    tippy_say(h.userdata);
+    btn = gcbo();
+    fig = btn.parent;
+    tippy_say(fig, btn.userdata);
+endfunction
+
+function tippy_raise(fig)
+    ud = tippy_get_ud(fig);
+    handles = [];
+    if ud.face <> [] then
+        handles = [handles, ud.face];
+    end
+    if ud.txt <> [] then
+        handles = [handles, ud.txt];
+    end
+    if ud.help_btns <> [] then
+        handles = [handles, ud.help_btns];
+    end
+    if ud.nav_btns <> [] then
+        handles = [handles, ud.nav_btns];
+    end
+    theme_raise_ui(handles);
 endfunction
 
 function tippy_wave()
-    // A short, fun idle animation - call from an "Animate Tippy" button.
-    global TIPPY_FACE
+    fig = gcf();
+    ud = tippy_get_ud(fig);
+    if ud.face == [] then
+        return;
+    end
     faces = ['(^_^)'; '(^o^)'; '(^_-)'; ('(*o*)'); '(^_^)'];
     for i = 1:size(faces, 'r')
-        TIPPY_FACE.string = faces(i);
+        ud.face.string = faces(i);
+        fig.userdata = ud;
         drawnow();
         xpause(150000);
     end
